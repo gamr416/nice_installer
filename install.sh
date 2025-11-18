@@ -15,14 +15,14 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-
+#log every command and error into the log file
 log_message() {
     local message="$1"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     echo "[$timestamp] $message" >> "$LOG_FILE"
 }
 
-
+#check sudo
 check_root_privileges() {
     if [[ $EUID -ne 0 ]]; then
         log_message "ERR: Root required. Rerun with sudo."
@@ -50,7 +50,7 @@ detect_package_manager() {
     fi
 }
 
-
+#check for repeating packages
 is_package_installed() {
     local package="$1"
     local pm="$2"
@@ -69,7 +69,7 @@ is_package_installed() {
     return 1
 }
 
-
+#command to the package manager for the installation
 install_package() {
     local package="$1"
     local pm="$2"
@@ -110,7 +110,7 @@ install_package() {
     return 1
 }
 
-
+#update info about the repos with package manager
 update_repositories() {
     local pm="$1"
 
@@ -135,14 +135,14 @@ update_repositories() {
     esac
 }
 
-
+#check config.txt
 read_config_file() {
     local packages=()
     if [[ -f "$CONFIG_FILE" ]]; then
         while IFS= read -r line || [[ -n "$line" ]]; do
-            # skip newlines
+            # skip newlines in config file
             if [[ -n "$line" && ! "$line" =~ ^[[:space:]]*# ]]; then
-                # remove spaces
+                # remove spaces in config file
                 local package=$(echo "$line" | xargs)
                 packages+=("$package")
             fi
@@ -155,7 +155,7 @@ read_config_file() {
     echo "${packages[@]}"
 }
 
-
+#calling all installation functions
 main() {
 
     mkdir -p "$(dirname "$LOG_FILE")"
@@ -194,7 +194,7 @@ main() {
 
     update_repositories "$package_manager"
 
-    # Установка пакетов
+    # package installation
     local success_count=0
     local fail_count=0
     local skipped_count=0
@@ -226,7 +226,7 @@ main() {
         fi
     done
 
-    # REPORT
+    # REPORT about the installation
     echo -e "${BLUE}========================================${NC}"
     echo -e "${BLUE}Installation report${NC}"
     echo -e "${GREEN}Installed: $success_count${NC}"
@@ -244,6 +244,6 @@ main() {
     echo -e "${BLUE}Installed: $success_count, Skipped: $skipped_count, ERRORS: $fail_count${NC}"
 }
 
-
+#interruption handling
 trap 'log_message "User interrupt"; exit 1' INT TERM
 main "$@"
