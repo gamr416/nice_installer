@@ -186,7 +186,8 @@ main() {
     read -p "Continue with installation? (Y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        log_message "${YELLOW}Canceled${NC}"
+        log_message "Canceled"
+        echo -e "${YELLOW}Canceled${NC}"
         exit 0
     fi
 
